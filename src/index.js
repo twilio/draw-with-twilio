@@ -23,11 +23,11 @@ function setupLocalDataTrack() {
 
   window.addEventListener('mousedown', () => {
     mouseDown = true;
-  });
+  }, false);
 
   window.addEventListener('mouseup', () => {
     mouseDown = false;
-  });
+  }, false);
 
   window.addEventListener('mousemove', event => {
     const { pageX: x, pageY: y } = event;
@@ -42,7 +42,7 @@ function setupLocalDataTrack() {
         mouseCoordinates
       }));
     }
-  });
+  }, false);
 
   return dataTrack;
 }
@@ -76,13 +76,9 @@ let room;
 
 /**
  * Update the UI in response to disconnecting.
- * @param {Error?} error
  * @returns {void}
  */
-function didDisconnect(error) {
-  if (error) {
-    console.error(error);
-  }
+function didDisconnect() {
   if (room) {
     room.participants.forEach(participantDisconnected);
   }

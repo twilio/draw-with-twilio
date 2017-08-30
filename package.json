@@ -1,0 +1,36 @@
+{
+  "name": "twilio-video.js-drawing",
+  "version": "0.1.0",
+  "description": "Draw with twilio-video.js!",
+  "main": "server/index.js",
+  "scripts": {
+    "build": "mkdirp js && browserify src/index.js -o js/index.js",
+    "clean": "rimraf js",
+    "start": "node server/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Twilio",
+    "Video",
+    "twilio-video",
+    "twilio-video.js",
+    "WebRTC",
+    "drawing",
+    "audio",
+    "video",
+    "data"
+  ],
+  "author": "Mark Andrus Roberts <mroberts@twilio.com>",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "express": "^4.15.4",
+    "morgan": "^1.8.2",
+    "twilio": "^3.6.4",
+    "twilio-video": "file:../twilio-video.js"
+  },
+  "devDependencies": {
+    "browserify": "^14.4.0",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.1"
+  }
+}

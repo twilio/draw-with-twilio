@@ -1,14 +1,29 @@
 <html>
 <head>
-<title>Draw with twilio-video.js!</title>
+<title>Draw with Twilio</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<link rel="stylesheet" href="index.css">
 </head>
 <body>
-<input id="identity" placeholder="Participant Identity" />
-<input id="name" placeholder="Room Name" />
-<button id="connect">Connect</button>
-<button id="disconnect" disabled>Disconnect</button>
-<video id="video"></video>
-<canvas id="canvas" width="640" height="480"></canvas>
-<script src="app.js"></script>
+<header class="navbar navbar-light bg-light justify-content-between">
+  <a class="navbar-brand align-middle" href="#">
+    <img src="https://www.twilio.com/marketing/bundles/company-brand/img/logos/red/twilio-mark-red.svg" width="30" height="30">
+  </a>
+  <form class="form-inline">
+    <input id="identity" class="form-control mr-sm-2" placeholder="Name" />
+    <input id="name" class="form-control mr-sm-2" placeholder="Room" />
+    <button id="connect" class="btn btn-outline-success mr-sm-2 my-2 my-sm-0">Connect</button>
+    <button id="disconnect" class="btn btn-outline-danger my-2 my-sm-0" disabled>Disconnect</button>
+  </form>
+</header>
+<div class="container-fluid">
+  <div id="participants">
+    <div id="local-participant" class="participant">
+      <video></video>
+    </div>
+  </div>
+</div>
+<canvas id="canvas" width="800" height="600"></canvas>
+<script src="index.js"></script>
 </body>
 </html>

@@ -1,13 +1,17 @@
 {
-  "name": "twilio-video.js-drawing",
+  "name": "draw-with-twilio",
   "version": "0.1.0",
   "description": "Draw with twilio-video.js!",
-  "main": "server/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "mkdirp js && browserify src/index.js -o js/index.js",
     "clean": "rimraf js",
-    "start": "node server/index.js",
+    "deploy": "gcloud app deploy --project draw-with-twilio",
+    "start": "node lib/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "~8.0.0"
   },
   "keywords": [
     "Twilio",
@@ -25,12 +29,13 @@
   "dependencies": {
     "express": "^4.15.4",
     "morgan": "^1.8.2",
-    "twilio": "^3.6.4",
-    "twilio-video": "file:../twilio-video.js"
+    "twilio": "^2.11.1"
   },
   "devDependencies": {
     "browserify": "^14.4.0",
+    "color-hash": "^1.0.3",
     "mkdirp": "^0.5.1",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "twilio-video": "file:../twilio-video.js"
   }
 }

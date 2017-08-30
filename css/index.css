@@ -1,0 +1,36 @@
+.participant {
+  float: left;
+  padding-bottom: 1em;
+  padding-right: 1em;
+}
+
+video {
+  border-radius: 50%;
+  height: 100px;
+  object-fit: cover;
+  overflow: hidden;
+  width: 100px;
+}
+
+header {
+  margin-bottom: 1em;
+}
+
+header form {
+  margin: 0;
+}
+
+header img {
+  vertical-align: top;
+  margin-right: 0.25em;
+}
+
+canvas {
+  bottom: 0;
+  left: 0;
+  margin: auto;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: -1;
+}

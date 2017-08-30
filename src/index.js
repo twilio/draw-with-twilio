@@ -1,43 +1,47 @@
 'use strict';
 
 const { LocalDataTrack, connect, createLocalTracks } = require('twilio-video');
+const colorHash = new (require('color-hash'))();
 
-const identityInput = document.getElementById('identity');
-const nameInput = document.getElementById('name');
+const canvas = document.getElementById('canvas');
 const connectButton = document.getElementById('connect');
 const disconnectButton = document.getElementById('disconnect');
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
+const identityInput = document.getElementById('identity');
+const nameInput = document.getElementById('name');
+const participants = document.getElementById('participants');
+const video = document.querySelector('#local-participant > video');
 
 /**
- * Setup a LocalDataTrack to transmit mouse coordinates on a <canvas> element.
- * @param {HTMLCanvasElement} canvas
+ * Setup a LocalDataTrack to transmit mouse coordinates.
  * @returns {LocalDataTrack} dataTrack
  */
-function setupLocalDataTrack(canvas) {
+function setupLocalDataTrack() {
   const dataTrack = new LocalDataTrack();
 
   let mouseDown;
   let mouseCoordinates;
 
-  canvas.addEventListener('mousedown', () => {
+  window.addEventListener('mousedown', () => {
     mouseDown = true;
   });
 
-  canvas.addEventListener('mouseup', () => {
-    mouseUp = false;
+  window.addEventListener('mouseup', () => {
+    mouseDown = false;
   });
 
-  canvas.addEventListener('mousemove', event => {
-    mouseCoordinates = {
-      x: event.clientX,
-      y: event.clientY
-    };
+  window.addEventListener('mousemove', event => {
+    const { pageX: x, pageY: y } = event;
+    mouseCoordinates = { x, y };
 
-    dataTrack.send({
-      mouseDown,
-      mouseCoordinates
-    });
+    if (mouseDown) {
+      const color = colorHash.hex(dataTrack.id);
+      drawCircle(canvas, color, x, y);
+
+      dataTrack.send(JSON.stringify({
+        mouseDown,
+        mouseCoordinates
+      }));
+    }
   });
 
   return dataTrack;
@@ -67,11 +71,18 @@ async function getToken(identity) {
   return response.text();
 }
 
+let connectAttempt;
+let room;
+
 /**
  * Update the UI in response to disconnecting.
+ * @param {Error?} error
  * @returns {void}
  */
-function didDisconnect() {
+function didDisconnect(error) {
+  if (error) {
+    console.error(error);
+  }
   if (room) {
     room.participants.forEach(participantDisconnected);
   }
@@ -86,12 +97,18 @@ function didDisconnect() {
  * @returns {Promise<void>}
  */
 async function main() {
-  const dataTrack = setupLocalDataTrack(canvas);
+  const dataTrack = setupLocalDataTrack();
   const audioAndVideoTrack = await setupLocalAudioAndVideoTracks(video);
-  const tracks = [dataTrack].concat(audioAndVideoTrack);
 
-  let connectAttempt;
-  let room;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  // TODO(mroberts): Fix publishing DataTracks at connect-time.
+  const tracks = audioAndVideoTrack;
 
   connectButton.addEventListener('click', async () => {
     identityInput.disabled = true;
@@ -101,16 +118,22 @@ async function main() {
 
     try {
       const identity = identityInput.value;
-      const token = await getToken(identity);
       const name = nameInput.value;
 
+      console.log('Getting Access Token...');
+      const token = await getToken(identity);
+      console.log(`Got Access Token "${token}"`);
+
+      console.log('Attempting to connect...');
       connectAttempt = connect(token, {
-        logLevel: 'debug',
         name,
         tracks
       });
 
       room = await connectAttempt;
+      console.log(`Connected to Room "${room.name}"`);
+
+      room.localParticipant.publishTrack(dataTrack);
 
       // NOTE(mroberts): Save a reference to `room` on `window` for debugging.
       window.room = room;
@@ -127,7 +150,8 @@ async function main() {
   disconnectButton.addEventListener('click', () => {
     if (connectAttempt) {
       connectAttempt.cancel();
-    } else if (room) {
+    }
+    if (room) {
       room.disconnect();
     }
     didDisconnect();
@@ -147,7 +171,7 @@ function participantConnected(participant) {
   const videoElement = document.createElement('video');
   participantDiv.appendChild(videoElement);
 
-  document.appendChild(participantDiv);
+  participants.appendChild(participantDiv);
 
   participant.tracks.forEach(track => trackAdded(participant, track));
   participant.on('trackAdded', track => trackAdded(participant, track));
@@ -163,7 +187,9 @@ function participantConnected(participant) {
 function participantDisconnected(participant) {
   console.log(`Participant "${participant.identity}" disconnected`);
   const participantDiv = document.getElementById(participant.sid);
-  participantDiv.remove();
+  if (participantDiv) {
+    participantDiv.remove();
+  }
 }
 
 /**
@@ -177,8 +203,12 @@ function trackAdded(participant, track) {
   if (track.kind === 'audio' || track.kind === 'video') {
     track.attach(`#${participant.sid} > video`);
   } else if (track.kind === 'data') {
+    const color = colorHash.hex(track.id);
     track.on('message', data => {
-      console.log(data);
+      const { mouseDown, mouseCoordinates: { x, y } } = JSON.parse(data);
+      if (mouseDown) {
+        drawCircle(canvas, color, x, y);
+      }
     });
   }
 }
@@ -194,6 +224,30 @@ function trackRemoved(participant, track) {
   if (track.kind === 'audio' || track.kind === 'video') {
     track.detach();
   }
+}
+
+/**
+ * Draw a circle on the <canvas> element.
+ * @param {HTMLCanvasElement} canvas
+ * @param {string} color
+ * @param {number} x
+ * @param {number} y
+ * @returns {void}
+ */
+function drawCircle(canvas, color, x, y) {
+  const context = canvas.getContext('2d');
+  context.beginPath();
+  context.arc(
+    x,
+    y,
+    10,
+    0,
+    2 * Math.PI,
+    false);
+  context.fillStyle = color;
+  context.fill();
+  context.strokeStyle = '#000000';
+  context.stroke();
 }
 
 // Go!

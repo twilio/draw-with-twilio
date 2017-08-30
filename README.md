@@ -17,7 +17,7 @@ npm install
 npm run build
 npm start
 ```
-i
+
 Finally, navigate to [localhost:9000](http://localhost:9000).
 
 Deploy

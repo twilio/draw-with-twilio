@@ -9,8 +9,7 @@ Try it out at
 Install
 -------
 
-Currently, this depends on a special DataTrack-enabled build of twilio-video.js.
-Check that out in a directory parallel to draw-with-twilio, then run
+First, run the following:
 
 ```
 npm install
@@ -18,7 +17,7 @@ npm run build
 npm start
 ```
 
-Finally, navigate to [localhost:9000](http://localhost:9000).
+Then, navigate to [localhost:9000](http://localhost:9000).
 
 Deploy
 ------

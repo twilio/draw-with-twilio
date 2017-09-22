@@ -6,6 +6,7 @@ const colorHash = new (require('color-hash'))();
 const canvas = document.getElementById('canvas');
 const connectButton = document.getElementById('connect');
 const disconnectButton = document.getElementById('disconnect');
+const form = document.getElementById('form');
 const identityInput = document.getElementById('identity');
 const nameInput = document.getElementById('name');
 const participants = document.getElementById('participants');
@@ -106,7 +107,9 @@ async function main() {
   // TODO(mroberts): Fix publishing DataTracks at connect-time.
   const tracks = audioAndVideoTrack;
 
-  connectButton.addEventListener('click', async () => {
+  connectButton.addEventListener('click', async event => {
+    event.preventDefault();
+
     identityInput.disabled = true;
     nameInput.disabled = true;
     connectButton.disabled = true;
@@ -143,13 +146,17 @@ async function main() {
     }
   });
 
-  disconnectButton.addEventListener('click', () => {
+  disconnectButton.addEventListener('click', event => {
+    event.preventDefault();
+
     if (connectAttempt) {
       connectAttempt.cancel();
     }
+
     if (room) {
       room.disconnect();
     }
+
     didDisconnect();
   });
 }

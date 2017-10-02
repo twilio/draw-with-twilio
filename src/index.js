@@ -79,8 +79,11 @@ let room;
  * Update the UI in response to disconnecting.
  * @returns {void}
  */
-function didDisconnect() {
+function didDisconnect(error) {
   if (room) {
+    if (error) {
+      console.error(error);
+    }
     room.participants.forEach(participantDisconnected);
   }
   identityInput.disabled = false;
@@ -104,8 +107,7 @@ async function main() {
     canvas.height = window.innerHeight;
   });
 
-  // TODO(mroberts): Fix publishing DataTracks at connect-time.
-  const tracks = audioAndVideoTrack;
+  const tracks = audioAndVideoTrack.concat(dataTrack);
 
   connectButton.addEventListener('click', async event => {
     event.preventDefault();
@@ -131,8 +133,6 @@ async function main() {
 
       room = await connectAttempt;
       console.log(`Connected to Room "${room.name}"`);
-
-      room.localParticipant.publishTrack(dataTrack);
 
       // NOTE(mroberts): Save a reference to `room` on `window` for debugging.
       window.room = room;

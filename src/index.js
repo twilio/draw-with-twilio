@@ -22,8 +22,16 @@ function setupLocalDataTrack() {
   let mouseDown;
   let mouseCoordinates;
 
-  window.addEventListener('mousedown', () => {
+  window.addEventListener('mousedown', event => {
     mouseDown = true;
+    const { pageX: x, pageY: y } = event;
+    mouseCoordinates = { x: x / window.innerWidth, y: y / window.innerHeight };
+
+    // Send the initial down coordinate
+    dataTrack.send(JSON.stringify({
+      mouseDown,
+      mouseCoordinates
+    }));
   }, false);
 
   window.addEventListener('mouseup', () => {
@@ -32,14 +40,15 @@ function setupLocalDataTrack() {
 
   window.addEventListener('mousemove', event => {
     const { pageX: x, pageY: y } = event;
-    mouseCoordinates = { x, y };
+    mouseCoordinates = { x: x / window.innerWidth, y: y / window.innerHeight };
 
     if (mouseDown) {
       const color = colorHash.hex(dataTrack.id);
       drawCircle(canvas, color, x, y);
 
+      // Send the drawing coordinate
       dataTrack.send(JSON.stringify({
-        mouseDown,
+        mouseDown: false,
         mouseCoordinates
       }));
     }
@@ -209,9 +218,9 @@ function trackAdded(participant, track) {
     const color = colorHash.hex(track.id);
     track.on('message', data => {
       const { mouseDown, mouseCoordinates: { x, y } } = JSON.parse(data);
-      if (mouseDown) {
-        drawCircle(canvas, color, x, y);
-      }
+
+      // TODO: Improve this by using mouseDown to draw a path on a canvas
+      drawCircle(canvas, color, x * window.innerWidth, y * window.innerHeight);
     });
   }
 }

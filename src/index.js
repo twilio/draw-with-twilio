@@ -141,6 +141,7 @@ async function main() {
 
       room.participants.forEach(participantConnected);
       room.on('participantConnected', participantConnected);
+      room.on('participantDisconnected', participantDisconnected);
     } catch (error) {
       didDisconnect(error);
     }
@@ -162,8 +163,8 @@ async function main() {
 }
 
 /**
- * Handle a connected Participant.
- * @param {Participant} participant
+ * Handle a connected RemoteParticipant.
+ * @param {RemoteParticipant} participant
  * @retruns {void}
  */
 function participantConnected(participant) {
@@ -173,22 +174,20 @@ function participantConnected(participant) {
 
   const videoElement = document.createElement('video');
   participantDiv.appendChild(videoElement);
-
   participants.appendChild(participantDiv);
 
-  participant.tracks.forEach(track => trackAdded(participant, track));
-  participant.on('trackAdded', track => trackAdded(participant, track));
-  participant.on('trackRemoved', track => trackRemoved(participant, track));
-  participant.once('disconnected', () => participantDisconnected(participant));
+  participant.tracks.forEach(publication => trackPublished(participant, publication));
+  participant.on('trackPublished', publication => trackPublished(participant, publication));
+  participant.on('trackUnpublished', publication => trackUnpublished(participant, publication));
 }
 
 /**
- * Handle a disconnnected Participant.
- * @param {Participant} participant
+ * Handle a disconnnected RemoteParticipant.
+ * @param {RemoteParticipant} participant
  * @returns {void}
  */
 function participantDisconnected(participant) {
-  console.log(`Participant "${participant.identity}" disconnected`);
+  console.log(`RemoteParticipant "${participant.identity}" disconnected`);
   const participantDiv = document.getElementById(participant.sid);
   if (participantDiv) {
     participantDiv.remove();
@@ -196,13 +195,28 @@ function participantDisconnected(participant) {
 }
 
 /**
- * Handle an added Track.
- * @param {Participant} participant
+ * Handle a published Track.
+ * @param {RemoteParticipant} participant
+ * @param {RemoteTrackPublication} publication
+ */
+function trackPublished(participant, publication) {
+  console.log(`RemoteParticipant "${participant.identity}" published ${publication.kind} Track ${publication.trackSid}`);
+  if (publication.isSubscribed) {
+    trackSubscribed(participant, publication.track);
+  } else {
+    publication.on('subscribed', track => trackSubscribed(participant, track));
+  }
+  publication.on('unsubscribed', track => trackUnsubscribed(participant, track));
+}
+
+/**
+ * Handle a subscribed Track.
+ * @param {RemoteParticipant} participant
  * @param {Track} track
  * @returns {void}
  */
-function trackAdded(participant, track) {
-  console.log(`Participant "${participant.identity}" added ${track.kind} Track ${track.sid}`);
+function trackSubscribed(participant, track) {
+  console.log(`LocalParticipant subscribed to RemoteParticipant "${participant.identity}"'s ${track.kind} Track ${track.sid}`);
   if (track.kind === 'audio' || track.kind === 'video') {
     track.attach(`#${participant.sid} > video`);
   } else if (track.kind === 'data') {
@@ -217,13 +231,22 @@ function trackAdded(participant, track) {
 }
 
 /**
- * Handle a removed Track.
- * @param {Participant} participant
+ * Handle an unpublished Track.
+ * @param {RemoteParticipant} participant
+ * @param {RemoteTrackPublication} publication
+ */
+function trackUnpublished(participant, publication) {
+  console.log(`RemoteParticipant "${participant.identity}" unpublished ${publication.kind} Track ${publication.trackSid}`);
+}
+
+/**
+ * Handle an unsubscribed Track.
+ * @param {RemoteParticipant} participant
  * @param {Track} track
  * @returns {void}
  */
-function trackRemoved(participant, track) {
-  console.log(`Participant "${participant.identity}" removed ${track.kind} Track ${track.sid}`);
+function trackUnsubscribed(participant, track) {
+  console.log(`LocalParticipant unsubscribed from RemoteParticipant "${participant.identity}"'s ${track.kind} Track ${track.sid}`);
   if (track.kind === 'audio' || track.kind === 'video') {
     track.detach();
   }

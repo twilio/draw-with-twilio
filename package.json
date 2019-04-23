@@ -37,6 +37,6 @@
     "color-hash": "^1.0.3",
     "mkdirp": "^0.5.1",
     "rimraf": "^2.6.1",
-    "twilio-video": "^2.0.0-beta7"
+    "twilio-video": "^2.0.0-beta8"
   }
 }
